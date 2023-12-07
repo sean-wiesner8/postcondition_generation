@@ -1,8 +1,6 @@
 from openai import OpenAI
 from datasets import load_dataset
-import os
 
-os.environ['OPENAI_API_KEY'] = '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'
 client = OpenAI()
 
 INPUT_INTRO = "Given the problem description of the programming problem defined below, as well as the definition of a post-condition defined below, create 10 post-conditions in Python to test against an implementation of the programming problem. Before creating these test cases, reiterate what a post-condition is based on the definition described below.\n\nProgramming Problem:\n"
@@ -49,8 +47,10 @@ def format_inputs(raw_data, dataset):
             prompt = '"' + function_def + "\n" + function_desc + '"\n\n'
             prompt = INPUT_INTRO + prompt + POSTCONDITION_DEF + EXAMPLE_POSTCONDITION
             prompt_data.append(prompt)
-    else:
+
+    else:  # mbpp
         for prompt in raw_data['text']:
+            prompt = '"' + prompt + '"' + '\n\n'
             prompt = INPUT_INTRO + prompt + POSTCONDITION_DEF + EXAMPLE_POSTCONDITION
             prompt_data.append(prompt)
 

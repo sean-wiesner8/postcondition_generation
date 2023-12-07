@@ -1,7 +1,5 @@
 from openai import OpenAI
-import os
 
-os.environ['OPENAI_API_KEY'] = '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'
 client = OpenAI()
 
 INPUT = "Given the problem description of the programming problem defined below, as well as the definition of a post-condition defined below, create 10 post-conditions in Python to test against an implementation of the programming problem. Before creating these test cases, reiterate what a post-condition is based on the definition described below.\n\nProgramming problem:\n'def remove_kth_element(list1, L):\nWrite a python function to remove the k'th element from a given list.'\n\nDefinition of a post-condition: A post-condition is an assert statement that checks for a condition that should be true regardless of the input.\n\nHere is an example post-condition for an arbitrary programming problem:\n'# Post-condition 1: The output should be a float or an integer.\nassert isinstance(result, (int, float))'"

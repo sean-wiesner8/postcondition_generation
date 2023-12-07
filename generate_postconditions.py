@@ -57,20 +57,52 @@ def format_inputs(raw_data, dataset):
     return prompt_data
 
 
+def generate_postconditions(inputs):
+
+    responses = []
+    for input in inputs:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "user", "content": input}
+            ]
+        )
+        message_content = response.choices[0].message.content
+        responses.append(message_content)
+
+    return responses
+
+
+def get_task_ids(raw_data):
+
+    task_ids = []
+    for task_id in raw_data['task_id']:
+        task_ids.append(task_id)
+
+    return task_ids
+
+
 def main():
+
     dataset = 'humanEval'
     raw_data = load_data(dataset)
     formatted_inputs = format_inputs(raw_data, dataset)
-    with open('humanEval_inputs.txt', 'w') as f:
-        for generation in formatted_inputs:
-            f.write(f"{generation}\n\n********\n\n")
+
+    task_ids = get_task_ids(raw_data)
+    generations = generate_postconditions(formatted_inputs)
+    with open('humanEval_generations.txt', 'w') as f:
+        for i in range(len(generations)):
+            f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
 
     dataset = 'mbpp'
     raw_data = load_data(dataset)
     formatted_inputs = format_inputs(raw_data, dataset)
-    with open('mbpp_inputs.txt', 'w') as f:
-        for generation in formatted_inputs:
-            f.write(f"{generation}\n\n********\n\n")
+
+    task_ids = get_task_ids(raw_data)
+    generations = generate_postconditions(formatted_inputs)
+    with open('mbpp_generations.txt', 'w') as f:
+        for i in range(len(generations)):
+            f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
 
 
 if __name__ == "__main__":

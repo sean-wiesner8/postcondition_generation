@@ -5,7 +5,7 @@ import os
 os.environ['OPENAI_API_KEY'] = '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'
 client = OpenAI()
 
-INPUT_INTRO = "Given the problem description of the programming problem defined below, as well as the definition of a post-condition defined below, create 10 post-conditions in Python to test against an implementation of the programming problem. Before creating these test cases, reiterate what a post-condition is based on the definition described below.\n\n"
+INPUT_INTRO = "Given the problem description of the programming problem defined below, as well as the definition of a post-condition defined below, create 10 post-conditions in Python to test against an implementation of the programming problem. Before creating these test cases, reiterate what a post-condition is based on the definition described below.\n\nProgramming Problem:\n"
 
 POSTCONDITION_DEF = "Definition of a post-condition: A post-condition is an assert statement that checks for a condition that should be true regardless of the input.\n\n"
 
@@ -19,7 +19,7 @@ def load_data(dataset):
             'openai_humaneval')  # loading dataset
         return raw_datasets['test']
 
-    if dataset == "mbpp":
+    else:
         raw_datasets = load_dataset(
             'mbpp')
         return raw_datasets['test']
@@ -47,12 +47,12 @@ def format_inputs(raw_data, dataset):
             function_def = function_def.strip("\n")
 
             prompt = '"' + function_def + "\n" + function_desc + '"\n\n'
-            prompt = INPUT_INTRO + 'Programming problem:\n' + \
-                prompt + POSTCONDITION_DEF + EXAMPLE_POSTCONDITION
+            prompt = INPUT_INTRO + prompt + POSTCONDITION_DEF + EXAMPLE_POSTCONDITION
             prompt_data.append(prompt)
-
     else:
-        pass
+        for prompt in raw_data['text']:
+            prompt = INPUT_INTRO + prompt + POSTCONDITION_DEF + EXAMPLE_POSTCONDITION
+            prompt_data.append(prompt)
 
     return prompt_data
 
@@ -61,8 +61,14 @@ def main():
     dataset = 'humanEval'
     raw_data = load_data(dataset)
     formatted_inputs = format_inputs(raw_data, dataset)
+    with open('humanEval_inputs.txt', 'w') as f:
+        for generation in formatted_inputs:
+            f.write(f"{generation}\n\n********\n\n")
 
-    with open('generated_inputs.txt', 'w') as f:
+    dataset = 'mbpp'
+    raw_data = load_data(dataset)
+    formatted_inputs = format_inputs(raw_data, dataset)
+    with open('mbpp_inputs.txt', 'w') as f:
         for generation in formatted_inputs:
             f.write(f"{generation}\n\n********\n\n")
 

@@ -43,7 +43,6 @@ def get_param_names(data):
 
 def get_inputs(data):
     inputs = []
-    errors = 0
     for test in data['test']:
         test = test.split('\n')
         curr_inputs = []
@@ -55,7 +54,7 @@ def get_inputs(data):
                     args = args.split("==")[0].strip()
                     curr_inputs.append(args)
             except Exception:
-                pass
+                curr_inputs.append("*ERROR*")
 
         inputs.append(curr_inputs)
 
@@ -67,38 +66,64 @@ def generate_outputs(inputs, data, param_names):
     sys.stdout = mystdout = StringIO()
 
     canonical_solutions = data['canonical_solution']
-    all_outputs = []
     for solution, input_group, param_name in zip(canonical_solutions, inputs, param_names):
-        curr_outputs = []
         for input in input_group:
-            try:
-                executable_str = "def candidate("
-                for arg_name in param_name:
-                    executable_str += arg_name + ", "
+            if input == "*ERROR*":
+                print("*ERROR*")
+            else:
+                try:
+                    executable_str = "def candidate("
+                    for arg_name in param_name:
+                        executable_str += arg_name + ", "
 
-                executable_str = executable_str[:-2]
-                executable_str += "):\n"
-                executable_str += solution + '\n'
+                    executable_str = executable_str[:-2]
+                    executable_str += "):\n"
+                    executable_str += solution + '\n'
 
-                executable_str += "print(candidate" + input + ')'
+                    executable_str += "print(candidate" + input + ')'
 
-                compiled_executable = compile(
-                    executable_str, "<string>", "exec")
-                exec(compiled_executable)
+                    compiled_executable = compile(
+                        executable_str, "<string>", "exec")
+                    exec(compiled_executable)
 
-                curr_outputs.append(mystdout.getvalue())
+                except Exception:
+                    print("*ERROR*")
 
-            except Exception as e:
-                pass
+            print("*END_INPUT*")
 
-        all_outputs.append(curr_outputs)
+        print("*END_PROBLEM*")
 
     sys.stdout = old_stdout
+
+    all_outputs_str = mystdout.getvalue()
+    all_outputs_temp = all_outputs_str.split("*END_PROBLEM*")
+    all_outputs = []
+    for output_group in all_outputs_temp:
+        output_group_temp = output_group.split("*END_INPUT*")
+        output_group = []
+        for output in output_group_temp:
+            output = output.strip('\n')
+            output_group.append(output)
+
+        output_group.pop()  # remove extra blank input created with split
+        all_outputs.append(output_group)
+
     return all_outputs
 
 
 def extract_postconditions():
-    pass
+    with open('humanEval_generations.txt') as f:
+        lines = f.readlines()
+
+    executable_postconditions = []
+    for line in lines:
+        if len(line) >= 9 and line[:9] == 'HumanEval':
+            executable_postconditions.append([])
+
+        elif len(line) >= 6 and line[:6] == "assert":
+            executable_postconditions[-1].append(line)
+
+    return executable_postconditions
 
 
 def execute_postconditions(param_names, postconditions, inputs, outputs):

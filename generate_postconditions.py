@@ -49,8 +49,28 @@ def format_inputs(raw_data, dataset):
             prompt_data.append(prompt)
 
     else:  # mbpp
-        for prompt in raw_data['text']:
-            prompt = '"' + prompt + '"' + '\n\n'
+        for prompt, code, test_list in zip(raw_data['text'], raw_data['code'], raw_data['test_list']):
+            first_test = test_list[0]
+            start_idx = 7
+            end_idx = first_test.find("(")
+            func_name = first_test[start_idx:end_idx].strip()
+
+            var_start_idx = code.find(func_name) + len(func_name)
+            while code[var_start_idx] != "(":
+                var_start_idx += 1
+            var_end_idx = var_start_idx
+            while code[var_end_idx] != ")":
+                var_end_idx += 1
+
+            var_names = code[var_start_idx + 1:var_end_idx].split(",")
+            var_names = [var_name.strip() for var_name in var_names]
+
+            function_def = func_name + "("
+            for var_name in var_names:
+                function_def += var_name + ", "
+            function_def = function_def[:-2] + "):"
+
+            prompt = '"' + function_def + "\n" + prompt + '"\n\n'
             prompt = INPUT_INTRO + prompt + POSTCONDITION_DEF + EXAMPLE_POSTCONDITION
             prompt_data.append(prompt)
 
@@ -84,25 +104,25 @@ def get_task_ids(raw_data):
 
 def main():
 
-    dataset = 'humanEval'
-    raw_data = load_data(dataset)
-    formatted_inputs = format_inputs(raw_data, dataset)
+    # dataset = 'humanEval'
+    # raw_data = load_data(dataset)
+    # formatted_inputs = format_inputs(raw_data, dataset)
 
-    task_ids = get_task_ids(raw_data)
-    generations = generate_postconditions(formatted_inputs)
-    with open('humanEval_generations.txt', 'w') as f:
-        for i in range(len(generations)):
-            f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
+    # task_ids = get_task_ids(raw_data)
+    # generations = generate_postconditions(formatted_inputs)
+    # with open('humanEval_generations.txt', 'w') as f:
+    #     for i in range(len(generations)):
+    #         f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
 
     dataset = 'mbpp'
     raw_data = load_data(dataset)
     formatted_inputs = format_inputs(raw_data, dataset)
 
     task_ids = get_task_ids(raw_data)
-    generations = generate_postconditions(formatted_inputs)
-    with open('mbpp_generations.txt', 'w') as f:
-        for i in range(len(generations)):
-            f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
+    # generations = generate_postconditions(formatted_inputs)
+    # with open('mbpp_generations.txt', 'w') as f:
+    #     for i in range(len(generations)):
+    #         f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
 
 
 if __name__ == "__main__":

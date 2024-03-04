@@ -117,12 +117,11 @@ def main():
     dataset = 'mbpp'
     raw_data = load_data(dataset)
     formatted_inputs = format_inputs(raw_data, dataset)
-
     task_ids = get_task_ids(raw_data)
-    # generations = generate_postconditions(formatted_inputs)
-    # with open('mbpp_generations.txt', 'w') as f:
-    #     for i in range(len(generations)):
-    #         f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
+    generations = generate_postconditions(formatted_inputs)
+    with open('mbpp_generations.txt', 'w') as f:
+        for i in range(len(generations)):
+            f.write(f"{task_ids[i]}\n\n{generations[i]}\n\n********\n\n")
 
 
 if __name__ == "__main__":
